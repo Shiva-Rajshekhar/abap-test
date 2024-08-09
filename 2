@@ -1,0 +1,1474 @@
+*&---------------------------------------------------------------------*
+*& Report ZSD_DELIVERY_REPORT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsd_delivery_report.
+
+TYPES: BEGIN OF ty_likp,
+         vbeln TYPE vbeln_vl,
+         ernam TYPE ernam,
+         erdat TYPE erdat,
+         vstel TYPE vstel,
+         vkorg TYPE vkorg,
+         lfart TYPE lfart,
+         vbtyp TYPE vbtypl,
+         kunnr TYPE kunwe,
+         kunag TYPE kunag,
+         knumv TYPE knumv,
+       END OF ty_likp.
+
+TYPES: BEGIN OF ty_kna1,
+         kunnr TYPE kunnr,
+         name1 TYPE name1_gp,
+       END OF ty_kna1.
+
+TYPES: BEGIN OF ty_lips,
+         vbeln      TYPE vbeln_vl,
+         posnr      TYPE posnr_vl,
+         pstyv      TYPE pstyv_vl,
+         ernam      TYPE ernam,
+         erdat      TYPE erdat,
+         matnr      TYPE matnr,
+         matkl      TYPE matkl,
+         werks      TYPE werks_d,
+         lgort      TYPE lgort_d,
+         charg      TYPE charg_d,
+         lfimg      TYPE lfimg,
+         meins      TYPE meins,
+         vrkme      TYPE vrkme,
+         umvkz      TYPE umvkz,
+         brgew      TYPE brgew_15,
+         gewei      TYPE gewei,
+         volum      TYPE volum_15,
+         voleh      TYPE voleh,
+         arktx      TYPE arktx,
+         vbtyv      TYPE vbtypl,
+         vgbel      TYPE vgbel,
+         vgpos      TYPE vgpos,
+         mtart      TYPE mtart,
+         ean11      TYPE ean11,
+         kcmeng     TYPE kcmeng,
+         kcbrgew    TYPE kcbrgew,
+         kcvolum    TYPE kcvolum,
+         cuobj      TYPE cuobj_va,
+         cuobj_ch   TYPE cuobj_ch,
+         /cwm/pikmg TYPE /cwm/pikmg,
+         /cwm/pikme TYPE /cwm/pikme,
+       END OF ty_lips.
+
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbeln_va,
+         knumv TYPE knumv,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_prcd,
+         knumv TYPE knumv,
+         kposn TYPE kposn,
+         stunr TYPE stunr,
+         zaehk TYPE vfprc_cond_count,
+         kappl TYPE kappl,
+         kschl TYPE kscha,
+         kbetr TYPE vfprc_element_amount,
+         waers TYPE waers,
+         kkurs TYPE kkurs,
+         kwert TYPE vfprc_element_value,
+         waerk TYPE waerk,
+       END OF ty_prcd.
+
+TYPES: BEGIN OF ty_makt,
+         matnr TYPE matnr,
+         spras TYPE spras,
+         maktx TYPE maktx,
+       END OF ty_makt.
+
+TYPES: BEGIN OF ty_mara,
+         matnr TYPE matnr,
+* Begin of changes S4DK903328  05.06.2018
+         matkl TYPE matkl,
+* End of changes S4DK903328  05.06.2018
+         bismt TYPE bismt,
+         volum TYPE volum,
+         voleh TYPE voleh,
+       END OF ty_mara.
+
+TYPES: BEGIN OF ty_marc,
+         matnr TYPE matnr,
+         werks TYPE werks_d,
+         steuc TYPE steuc,
+       END OF ty_marc.
+
+TYPES: BEGIN OF ty_t001l,
+         werks TYPE werks_d,
+         lgort TYPE lgort_d,
+         lgobe TYPE lgobe,
+       END OF ty_t001l.
+
+TYPES: BEGIN OF ty_t604n,
+         spras TYPE spras,
+         land1 TYPE land1,
+         steuc TYPE steuc,
+         text1 TYPE bezei60,
+       END OF ty_t604n.
+
+TYPES: BEGIN OF ty_mch1,
+         matnr    TYPE matnr,
+         charg    TYPE charg_d,
+         vfdat    TYPE vfdat,
+         cuobj_bm TYPE cuobj_bm,
+       END OF ty_mch1.
+
+TYPES: BEGIN OF ty_ausp,
+         objek TYPE cuobn,
+         atinn TYPE atinn,
+         atzhl TYPE wzaehl,
+         mafid TYPE klmaf,
+         klart TYPE klassenart,
+         atwrt TYPE atwrt,
+       END OF ty_ausp.
+
+TYPES: BEGIN OF ty_matnr,
+         objek TYPE cuobn,
+       END OF ty_matnr.
+
+TYPES: BEGIN OF ty_vbap,
+         vbeln TYPE vbeln_va,
+         posnr TYPE posnr_va,
+         netwr TYPE netwr_ap,
+         waerk TYPE waerk,
+         netpr TYPE netpr,
+         knumh TYPE knumh_ch,
+         mwsbp TYPE mwsbp,
+       END OF ty_vbap.
+
+TYPES: BEGIN OF ty_vstel,
+         vstel TYPE vstel,
+       END OF ty_vstel.
+
+TYPES: BEGIN OF ts_vbfa,
+         ruuid   TYPE sd_doc_rel_uuid,
+         vbelv   TYPE vbeln_von,
+         posnv   TYPE posnr_von,
+         vbeln   TYPE vbeln_nach,
+         posnn   TYPE posnr_nach,
+         vbtyp_n TYPE vbtypl_n,
+         rfmng   TYPE rfmng,
+         meins   TYPE meins,
+         rfwrt   TYPE rfwrt,
+         waers   TYPE waers_v,
+         vbtyp_v TYPE vbtypl_v,
+       END OF ts_vbfa.
+
+TYPES: BEGIN OF ty_final,
+         vbeln   TYPE vbeln_vl,      " Delivery
+         posnr   TYPE posnr_vl,      " Item
+         kunag   TYPE kunag,         " Customer
+         cname   TYPE name1_gp,      " Customer Name
+         kunnr   TYPE kunwe,         " Ship to Party
+         pname   TYPE name1_gp,      " Ship to Party Name
+         vhnum   TYPE text40,        " Vehicle Number
+         dname   TYPE text40,        " Driver Name
+         cseal   TYPE text40,        " Customs Seal Number
+         conum   TYPE text40,        " Container Number
+         matnr   TYPE matnr,         " TMT Item Codes
+         maktx   TYPE maktx,         " TMT Item Description
+         wgbez   TYPE wgbez,         "Material group description
+         bismt   TYPE bismt,         " Old Material Number
+         charg   TYPE charg_d,       " Batch Number
+         volum   TYPE volum,         " Unit Volume(CL)
+         umvkz   TYPE umvkz,         " Unit per Case
+         steuc   TYPE steuc,         " H.S. Code
+         text1   TYPE bezei60,       " HS Code Description
+         lfimg   TYPE lfimg,         " Quantity (Case)
+         vocbm   TYPE volum,         " Unit Volume(CBM)
+         volit   TYPE volum,         " Unit Volume(Litre)
+         brgew   TYPE brgew,         " Total Weight(KG)
+         packi   TYPE text20,        " Packing
+         exdat   TYPE vfdat,         " Expiry Date
+         vinta   TYPE text30,        " Vintage
+         dlqty   TYPE lfimg,         " Delivery Quantity
+         meins   TYPE char5,         " UOM
+         pikmg   TYPE char15,        " Picking Quantity
+         pikme   TYPE char5,         " UOM2
+         lgort   TYPE lgort_d,       " Bin No. / Warehouse No
+         lgobe   TYPE lgobe,         " Stor. Loc. Description
+         boent   TYPE text30,        " Bill of Entry Date
+         biloe   TYPE text30,        " Bill of Entry
+         kwert   TYPE vfprc_element_value, " Uint Price
+         netwr   TYPE netwr_ap,      " Total Amount
+         waerk   TYPE waerk,         " CUrrency
+         abv%    TYPE text30,        " ABV %
+         forma   TYPE text30,        " Format
+         corgn   TYPE text30,        " Country of Origin
+         ewm_bin TYPE /scwm/ltap_vlpla,
+       END OF ty_final.
+
+DATA: gt_likp  TYPE TABLE OF ty_likp,
+      gs_likp  TYPE ty_likp,
+      gt_vstel TYPE TABLE OF ty_vstel,
+      gs_vstel TYPE ty_vstel,
+      gt_kna1  TYPE TABLE OF ty_kna1,
+      gs_kna1  TYPE ty_kna1,
+      gt_prcd  TYPE TABLE OF ty_prcd,
+      gs_prcd  TYPE ty_prcd,
+      gt_lips  TYPE TABLE OF ty_lips,
+      gs_lips  TYPE ty_lips,
+      gt_vbak  TYPE TABLE OF ty_vbak,
+      gs_vbak  TYPE ty_vbak,
+      gt_makt  TYPE TABLE OF ty_makt,
+      gs_makt  TYPE ty_makt,
+      gt_mara  TYPE TABLE OF ty_mara,
+      gs_mara  TYPE ty_mara,
+      gt_marc  TYPE TABLE OF ty_marc,
+      gs_marc  TYPE ty_marc,
+      gt_t001l TYPE TABLE OF ty_t001l,
+      gs_t001l TYPE ty_t001l,
+      gt_t604n TYPE TABLE OF ty_t604n,
+      gs_t604n TYPE ty_t604n,
+      gt_mch1  TYPE TABLE OF ty_mch1,
+      gs_mch1  TYPE ty_mch1,
+      gt_ausp  TYPE TABLE OF ty_ausp,
+      gs_ausp  TYPE ty_ausp,
+      gt_matnr TYPE TABLE OF ty_matnr,
+      gs_matnr TYPE ty_matnr,
+      gt_vbap  TYPE TABLE OF ty_vbap,
+      gs_vbap  TYPE ty_vbap,
+      gt_t023t TYPE TABLE OF t023t,             "* Begin of changes S4DK903328  05.06.2018
+      gs_t023t TYPE t023t,                      "* End of changes S4DK903328  05.06.2018
+      gt_final TYPE TABLE OF ty_final,
+      gs_final TYPE ty_final,
+      gt_fcat  TYPE TABLE OF lvc_s_fcat,
+      gs_fcat  TYPE lvc_s_fcat,
+      gs_layo  TYPE lvc_s_layo,
+      gv_count TYPE i,
+      gt_lines TYPE TABLE OF tline,
+      gs_lines TYPE tline,
+      gv_name  TYPE tdobname,
+      gv_volum TYPE char20,
+      gt_atinn TYPE TABLE OF selopt,
+      gs_atinn TYPE selopt,
+      gs_vari  TYPE disvariant,
+      gv_pikmg TYPE pikmg.
+
+SELECT-OPTIONS: s_vbeln FOR gs_likp-vbeln MATCHCODE OBJECT vmvl,
+                s_erdat FOR gs_likp-erdat,
+                s_vstel FOR gs_likp-vstel OBLIGATORY MATCHCODE OBJECT h_tvst,
+                s_werks FOR gs_lips-werks.
+SELECTION-SCREEN SKIP.
+SELECTION-SCREEN BEGIN OF BLOCK b WITH FRAME TITLE TEXT-000.
+  PARAMETERS: p_vari TYPE slis_vari.
+SELECTION-SCREEN END OF BLOCK b.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_vari.
+
+  gs_vari-report = sy-repid.
+  CALL FUNCTION 'REUSE_ALV_VARIANT_F4'
+    EXPORTING
+      is_variant    = gs_vari
+      i_save        = 'A'
+    IMPORTING
+      es_variant    = gs_vari
+    EXCEPTIONS
+      not_found     = 1
+      program_error = 2
+      OTHERS        = 3.
+  IF sy-subrc EQ 0.
+    p_vari = gs_vari-variant.
+  ENDIF.
+
+START-OF-SELECTION.
+
+  SELECT vstel
+         FROM tvst
+         INTO TABLE gt_vstel
+         WHERE vstel IN s_vstel.
+
+  REFRESH: s_vstel.
+  CLEAR: s_vstel.
+
+  LOOP AT gt_vstel INTO gs_vstel.
+    AUTHORITY-CHECK OBJECT 'V_LIKP_VST' ID 'VSTEL' FIELD gs_vstel-vstel
+                                        ID 'ACTVT' FIELD '03'.
+    IF sy-subrc EQ 0.
+      s_vstel-sign   = 'I'.
+      s_vstel-option = 'EQ'.
+      s_vstel-low    = gs_vstel-vstel.
+      APPEND s_vstel.
+      CLEAR: s_vstel.
+    ENDIF.
+
+    CLEAR: gs_vstel.
+  ENDLOOP.
+
+  IF lines( s_vstel ) NE 0 AND
+     lines( s_vstel ) NE lines( gt_vstel ).
+    MESSAGE | Full Data will not be shown due to Authorization | TYPE 'I' DISPLAY LIKE 'W'.
+  ENDIF.
+
+  IF s_vstel[] IS NOT INITIAL.
+
+    SELECT vbeln
+           ernam
+           erdat
+           vstel
+           vkorg
+           lfart
+           vbtyp
+           kunnr
+           kunag
+           knumv
+           FROM likp
+           INTO TABLE gt_likp
+           WHERE vbeln IN s_vbeln AND
+                 vstel IN s_vstel AND
+                 vbtyp EQ 'J'.
+
+    IF gt_likp[] IS NOT INITIAL.
+
+      SELECT kunnr
+             name1
+             FROM kna1
+             INTO TABLE gt_kna1
+             FOR ALL ENTRIES IN gt_likp
+             WHERE kunnr EQ gt_likp-kunnr.
+
+      SELECT kunnr
+             name1
+             FROM kna1
+             APPENDING TABLE gt_kna1
+             FOR ALL ENTRIES IN gt_likp
+             WHERE kunnr EQ gt_likp-kunag.
+
+      SELECT vbeln
+             posnr
+             pstyv
+             ernam
+             erdat
+             matnr
+             matkl
+             werks
+             lgort
+             charg
+             lfimg
+             meins
+             vrkme
+             umvkz
+             brgew
+             gewei
+             volum
+             voleh
+             arktx
+             vbtyv
+             vgbel
+             vgpos
+             mtart
+             ean11
+             kcmeng
+             kcbrgew
+             kcvolum
+             cuobj
+             cuobj_ch
+             /cwm/pikmg
+             /cwm/pikme
+             FROM lips
+             INTO TABLE gt_lips
+             FOR ALL ENTRIES IN gt_likp
+             WHERE vbeln EQ gt_likp-vbeln AND
+                   werks IN s_werks.
+
+      DELETE gt_lips WHERE lfimg IS INITIAL.
+
+      IF gt_lips[] IS NOT INITIAL.
+
+        SELECT matnr
+               spras
+               maktx
+               FROM makt
+               INTO TABLE gt_makt
+               FOR ALL ENTRIES IN gt_lips
+               WHERE matnr EQ gt_lips-matnr AND
+                     spras EQ sy-langu.
+
+        SELECT matnr
+               matkl
+               bismt
+               volum
+               voleh
+               FROM mara
+               INTO TABLE gt_mara
+               FOR ALL ENTRIES IN gt_lips
+               WHERE matnr EQ gt_lips-matnr.
+
+        IF sy-subrc EQ 0.
+          SELECT * FROM t023t
+                   INTO TABLE gt_t023t
+                   FOR ALL ENTRIES IN gt_mara
+                   WHERE spras = sy-langu
+                   AND   matkl = gt_mara-matkl.
+        ENDIF.
+
+        SELECT matnr
+               werks
+               steuc
+               FROM marc
+               INTO TABLE gt_marc
+               FOR ALL ENTRIES IN gt_lips
+               WHERE matnr EQ gt_lips-matnr AND
+                     werks EQ gt_lips-werks.
+
+        IF gt_marc[] IS NOT INITIAL.
+
+          SELECT spras
+                 land1
+                 steuc
+                 text1
+                 FROM t604n
+                 INTO TABLE gt_t604n
+                 FOR ALL ENTRIES IN gt_marc
+                 WHERE spras EQ sy-langu AND
+                       land1 EQ 'AE' AND
+                       steuc EQ gt_marc-steuc.
+
+        ENDIF.
+
+        SELECT werks
+               lgort
+               lgobe
+               FROM t001l
+               INTO TABLE gt_t001l
+               FOR ALL ENTRIES IN gt_lips
+               WHERE werks EQ gt_lips-werks AND
+                     lgort EQ gt_lips-lgort.
+
+        SELECT matnr
+               charg
+               vfdat
+               cuobj_bm
+               FROM mch1
+               INTO TABLE gt_mch1
+               FOR ALL ENTRIES IN gt_lips
+               WHERE matnr EQ gt_lips-matnr AND
+                     charg EQ gt_lips-charg.
+
+        LOOP AT gt_mch1 INTO gs_mch1.
+          gs_matnr-objek = gs_mch1-cuobj_bm.
+          APPEND gs_matnr TO gt_matnr.
+          CLEAR: gs_mch1, gs_matnr.
+        ENDLOOP.
+
+        SORT: gt_matnr BY objek.
+        DELETE ADJACENT DUPLICATES FROM gt_matnr COMPARING objek.
+
+        REFRESH: gt_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEVINTAGE'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEABV'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZSPIRITABV'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERABV'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERFORMAT'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEFORMAT'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZSPIRITFORMAT'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERORIGIN'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEORIGIN'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZSPIRITORIGIN'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZSPIRITBLDATE'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEBLDATE'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERBLDATE'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZSPIRITBILLOFENTRY'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEBILLOFENTRY'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        gs_atinn-sign   = 'I'.
+        gs_atinn-option = 'EQ'.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERBILLOFENTRY'
+          IMPORTING
+            output = gs_atinn-low.
+        APPEND gs_atinn TO gt_atinn.
+        CLEAR: gs_atinn.
+
+        IF gt_matnr[] IS NOT INITIAL.
+
+          SELECT objek
+                 atinn
+                 atzhl
+                 mafid
+                 klart
+                 atwrt
+                 FROM ausp
+                 INTO TABLE gt_ausp
+                 FOR ALL ENTRIES IN gt_matnr
+                 WHERE objek EQ gt_matnr-objek AND
+                       atinn IN gt_atinn.
+
+        ENDIF.
+
+        REFRESH: gt_matnr.
+        LOOP AT gt_lips INTO gs_lips.
+          gs_matnr-objek = gs_lips-matnr.
+          APPEND gs_matnr TO gt_matnr.
+          CLEAR: gs_lips, gs_matnr.
+        ENDLOOP.
+
+        IF gt_matnr[] IS NOT INITIAL.
+
+          SELECT objek
+                 atinn
+                 atzhl
+                 mafid
+                 klart
+                 atwrt
+                 FROM ausp
+                 APPENDING TABLE gt_ausp
+                 FOR ALL ENTRIES IN gt_matnr
+                 WHERE objek EQ gt_matnr-objek AND
+                       atinn IN gt_atinn.
+
+        ENDIF.
+
+        SELECT vbeln
+               knumv
+               FROM vbak
+               INTO TABLE gt_vbak
+               FOR ALL ENTRIES IN gt_lips
+               WHERE vbeln EQ gt_lips-vgbel.
+
+        IF gt_vbak[] IS NOT INITIAL.
+
+          SELECT knumv
+                 kposn
+                 stunr
+                 zaehk
+                 kappl
+                 kschl
+                 kbetr
+                 waers
+                 kkurs
+                 kwert
+                 waerk
+                 FROM prcd_elements
+                 INTO TABLE gt_prcd
+                 FOR ALL ENTRIES IN gt_vbak
+                 WHERE knumv EQ gt_vbak-knumv AND
+                       kschl EQ 'ZPRO'.
+
+        ENDIF.
+
+        SELECT vbeln
+               posnr
+               netwr
+               waerk
+               netpr
+               knumh
+               mwsbp
+               FROM vbap
+               INTO TABLE gt_vbap
+               FOR ALL ENTRIES IN gt_lips
+               WHERE vbeln EQ gt_lips-vgbel AND
+                     posnr EQ gt_lips-vgpos.
+
+      ENDIF.
+
+    ENDIF.
+
+  ELSE.
+    MESSAGE | You are not authorized to display Data | TYPE 'S' DISPLAY LIKE 'E'.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+
+  SORT: gt_likp  BY vbeln,
+        gt_lips  BY vbeln posnr,
+        gt_kna1  BY kunnr,
+        gt_makt  BY matnr,
+        gt_mara  BY matnr,
+        gt_marc  BY matnr werks,
+        gt_t001l BY werks lgort,
+        gt_t604n BY steuc,
+        gt_mch1  BY matnr charg,
+        gt_ausp  BY objek atinn,
+        gt_vbap  BY vbeln posnr,
+        gt_vbak  BY vbeln,
+        gt_prcd  BY knumv kposn,
+        gt_t023t BY matkl.
+
+  TYPES : BEGIN OF y_vbeln,
+            vbeln TYPE /scdl/dl_refdocno,
+          END OF y_vbeln.
+
+  DATA : lt_vbeln TYPE STANDARD TABLE OF y_vbeln.
+
+  DATA : ls_vbeln TYPE y_vbeln.
+
+  LOOP AT gt_lips
+    ASSIGNING FIELD-SYMBOL(<fs_lips>).
+
+    ls_vbeln-vbeln = CONV /scdl/dl_refdocno( <fs_lips>-vbeln ).
+
+    APPEND ls_vbeln TO lt_vbeln.
+
+  ENDLOOP.
+
+  IF lt_vbeln IS NOT INITIAL.
+
+
+
+    SELECT DISTINCT
+           docid,
+           refdocno
+      FROM /scdl/db_refdoc
+      FOR ALL ENTRIES IN @lt_vbeln
+     WHERE refdocno = @lt_vbeln-vbeln
+       and refitemno is NOT INITIAL
+            INTO TABLE @DATA(lt_scdl_refdoc).
+
+    IF sy-subrc IS INITIAL.
+
+      SELECT rdocid,
+             vlpla,
+             charg
+        FROM /scwm/ordim_l
+        INTO TABLE @DATA(lt_ordim_l)
+        FOR ALL ENTRIES IN @lt_scdl_refdoc
+       WHERE rdocid = @lt_scdl_refdoc-docid.
+
+    ENDIF.
+
+  ENDIF.
+
+  LOOP AT gt_lips INTO gs_lips.
+
+    gs_final-vbeln = gs_lips-vbeln.
+    gs_final-posnr = gs_lips-posnr.
+
+    READ TABLE gt_likp INTO gs_likp
+                       WITH KEY vbeln = gs_lips-vbeln
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+
+      gs_final-kunag = gs_likp-kunag.
+      gs_final-kunnr = gs_likp-kunnr.
+
+      READ TABLE gt_kna1 INTO gs_kna1
+                         WITH KEY kunnr = gs_likp-kunag
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-cname = gs_kna1-name1.
+      ENDIF.
+
+      CLEAR: gs_kna1.
+      READ TABLE gt_kna1 INTO gs_kna1
+                         WITH KEY kunnr = gs_likp-kunnr
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-pname = gs_kna1-name1.
+      ENDIF.
+
+      REFRESH: gt_lines.
+      CLEAR: gv_name.
+      gv_name = gs_likp-vbeln.
+      CALL FUNCTION 'READ_TEXT'
+        EXPORTING
+          client                  = sy-mandt
+          id                      = 'ZX15'
+          language                = sy-langu
+          name                    = gv_name
+          object                  = 'VBBK'
+        TABLES
+          lines                   = gt_lines
+        EXCEPTIONS
+          id                      = 1
+          language                = 2
+          name                    = 3
+          not_found               = 4
+          object                  = 5
+          reference_check         = 6
+          wrong_access_to_archive = 7
+          OTHERS                  = 8.
+
+      READ TABLE gt_lines INTO gs_lines INDEX 1.
+      IF sy-subrc EQ 0.
+        gs_final-vhnum = gs_lines-tdline.
+      ENDIF.
+
+      REFRESH: gt_lines.
+      CLEAR: gv_name.
+      gv_name = gs_likp-vbeln.
+      CALL FUNCTION 'READ_TEXT'
+        EXPORTING
+          client                  = sy-mandt
+          id                      = 'ZX14'
+          language                = sy-langu
+          name                    = gv_name
+          object                  = 'VBBK'
+        TABLES
+          lines                   = gt_lines
+        EXCEPTIONS
+          id                      = 1
+          language                = 2
+          name                    = 3
+          not_found               = 4
+          object                  = 5
+          reference_check         = 6
+          wrong_access_to_archive = 7
+          OTHERS                  = 8.
+
+      READ TABLE gt_lines INTO gs_lines INDEX 1.
+      IF sy-subrc EQ 0.
+        gs_final-dname = gs_lines-tdline.
+      ENDIF.
+
+      REFRESH: gt_lines.
+      CLEAR: gv_name.
+      gv_name = gs_likp-vbeln.
+      CALL FUNCTION 'READ_TEXT'
+        EXPORTING
+          client                  = sy-mandt
+          id                      = 'ZX17'
+          language                = sy-langu
+          name                    = gv_name
+          object                  = 'VBBK'
+        TABLES
+          lines                   = gt_lines
+        EXCEPTIONS
+          id                      = 1
+          language                = 2
+          name                    = 3
+          not_found               = 4
+          object                  = 5
+          reference_check         = 6
+          wrong_access_to_archive = 7
+          OTHERS                  = 8.
+
+      READ TABLE gt_lines INTO gs_lines INDEX 1.
+      IF sy-subrc EQ 0.
+        gs_final-cseal = gs_lines-tdline.
+      ENDIF.
+
+      REFRESH: gt_lines.
+      CLEAR: gv_name.
+      gv_name = gs_likp-vbeln.
+      CALL FUNCTION 'READ_TEXT'
+        EXPORTING
+          client                  = sy-mandt
+          id                      = 'ZX16'
+          language                = sy-langu
+          name                    = gv_name
+          object                  = 'VBBK'
+        TABLES
+          lines                   = gt_lines
+        EXCEPTIONS
+          id                      = 1
+          language                = 2
+          name                    = 3
+          not_found               = 4
+          object                  = 5
+          reference_check         = 6
+          wrong_access_to_archive = 7
+          OTHERS                  = 8.
+
+      READ TABLE gt_lines INTO gs_lines INDEX 1.
+      IF sy-subrc EQ 0.
+        gs_final-conum = gs_lines-tdline.
+      ENDIF.
+
+    ENDIF.
+
+    gs_final-matnr = gs_lips-matnr.
+    READ TABLE gt_makt INTO gs_makt
+                       WITH KEY matnr = gs_lips-matnr
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_final-maktx = gs_makt-maktx.
+    ENDIF.
+
+    READ TABLE gt_mara INTO gs_mara
+                       WITH KEY matnr = gs_lips-matnr
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+
+      gs_final-bismt = gs_mara-bismt.
+      gs_final-volum = gs_mara-volum.
+
+      CALL FUNCTION 'UNIT_CONVERSION_SIMPLE'
+        EXPORTING
+          input                = gs_mara-volum
+          no_type_check        = 'X'
+          round_sign           = '+'
+          unit_in              = gs_mara-voleh
+          unit_out             = 'M3'
+        IMPORTING
+          output               = gs_final-vocbm
+        EXCEPTIONS
+          conversion_not_found = 1
+          division_by_zero     = 2
+          input_invalid        = 3
+          output_invalid       = 4
+          overflow             = 5
+          type_invalid         = 6
+          units_missing        = 7
+          unit_in_not_found    = 8
+          unit_out_not_found   = 9
+          OTHERS               = 10.
+
+
+      READ TABLE gt_t023t INTO gs_t023t
+                          WITH KEY matkl = gs_mara-matkl
+                                   BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-wgbez = gs_t023t-wgbez.
+      ENDIF.
+    ENDIF.
+
+    READ TABLE gt_t001l INTO gs_t001l
+                        WITH KEY werks = gs_lips-werks
+                                 lgort = gs_lips-lgort
+                                 BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_final-lgobe = gs_t001l-lgobe.
+    ENDIF.
+
+    CLEAR: gv_volum.
+    gs_final-packi = gs_lips-umvkz.
+    gv_volum = gs_mara-volum.
+    SHIFT gv_volum RIGHT BY 1 PLACES.
+    SHIFT gv_volum RIGHT DELETING TRAILING '0'.
+    SHIFT gv_volum RIGHT DELETING TRAILING '.'.
+    CONDENSE: gs_final-packi, gv_volum NO-GAPS.
+    CONCATENATE gs_final-packi 'X' gv_volum INTO gs_final-packi.
+    CONDENSE gs_final-packi NO-GAPS.
+    CALL FUNCTION 'CONVERSION_EXIT_CUNIT_OUTPUT'
+      EXPORTING
+        input          = gs_mara-voleh
+        language       = sy-langu
+      IMPORTING
+        output         = gv_volum
+      EXCEPTIONS
+        unit_not_found = 1
+        OTHERS         = 2.
+    CONDENSE gv_volum NO-GAPS.
+    CONCATENATE gs_final-packi gv_volum INTO gs_final-packi SEPARATED BY space.
+    CONDENSE gs_final-packi.
+
+    gs_final-charg = gs_lips-charg.
+    gs_final-umvkz = gs_lips-umvkz.
+
+    READ TABLE gt_marc INTO gs_marc
+                       WITH KEY matnr = gs_lips-matnr
+                                werks = gs_lips-werks
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_final-steuc = gs_marc-steuc.
+      READ TABLE gt_t604n INTO gs_t604n
+                          WITH KEY steuc = gs_marc-steuc
+                                   BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-text1 = gs_t604n-text1.
+      ENDIF.
+    ENDIF.
+
+    gs_final-lfimg = gs_lips-lfimg.
+    gs_final-dlqty = gs_lips-lfimg.
+    CALL FUNCTION 'CONVERSION_EXIT_CUNIT_OUTPUT'
+      EXPORTING
+        input          = gs_lips-vrkme
+        language       = sy-langu
+      IMPORTING
+        output         = gs_final-meins
+      EXCEPTIONS
+        unit_not_found = 1
+        OTHERS         = 2.
+    gs_final-lgort = gs_lips-lgort.
+
+    CALL FUNCTION 'UNIT_CONVERSION_SIMPLE'
+      EXPORTING
+        input                = gs_lips-volum
+        no_type_check        = 'X'
+        round_sign           = '+'
+        unit_in              = gs_lips-voleh
+        unit_out             = 'L'
+      IMPORTING
+        output               = gs_final-volit
+      EXCEPTIONS
+        conversion_not_found = 1
+        division_by_zero     = 2
+        input_invalid        = 3
+        output_invalid       = 4
+        overflow             = 5
+        type_invalid         = 6
+        units_missing        = 7
+        unit_in_not_found    = 8
+        unit_out_not_found   = 9
+        OTHERS               = 10.
+
+    CALL FUNCTION 'UNIT_CONVERSION_SIMPLE'
+      EXPORTING
+        input                = gs_lips-brgew
+        no_type_check        = 'X'
+        round_sign           = '+'
+        unit_in              = gs_lips-gewei
+        unit_out             = 'KG'
+      IMPORTING
+        output               = gs_final-brgew
+      EXCEPTIONS
+        conversion_not_found = 1
+        division_by_zero     = 2
+        input_invalid        = 3
+        output_invalid       = 4
+        overflow             = 5
+        type_invalid         = 6
+        units_missing        = 7
+        unit_in_not_found    = 8
+        unit_out_not_found   = 9
+        OTHERS               = 10.
+
+    CLEAR: gv_pikmg.
+    CALL FUNCTION 'WB2_GET_PICK_QUANTITY'
+      EXPORTING
+        i_vbeln             = gs_lips-vbeln
+        i_posnr             = gs_lips-posnr
+*       I_MODE              = ' '
+      IMPORTING
+        e_pikmg             = gv_pikmg
+      EXCEPTIONS
+        document_read_error = 1
+        OTHERS              = 2.
+
+    IF gv_pikmg IS NOT INITIAL.
+      gs_final-pikmg = gv_pikmg.
+    ENDIF.
+    gs_final-pikme = gs_final-meins.
+
+    READ TABLE gt_vbak INTO gs_vbak
+                       WITH KEY vbeln = gs_lips-vgbel
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      READ TABLE gt_prcd INTO gs_prcd
+                         WITH KEY knumv = gs_vbak-knumv
+                                  kposn = gs_lips-vgpos
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-kwert = gs_prcd-kbetr * gs_prcd-kkurs.
+      ENDIF.
+
+    ENDIF.
+
+    READ TABLE gt_vbap INTO gs_vbap
+                       WITH KEY vbeln = gs_lips-vgbel
+                                posnr = gs_lips-vgpos
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_final-netwr = gs_vbap-netwr + gs_vbap-mwsbp.
+      gs_final-waerk = gs_vbap-waerk.
+    ENDIF.
+
+    READ TABLE gt_mch1 INTO gs_mch1
+                       WITH KEY matnr = gs_lips-matnr
+                                charg = gs_lips-charg
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+        EXPORTING
+          input  = 'ZBEERBLDATE'
+        IMPORTING
+          output = gs_atinn-low.
+      READ TABLE gt_ausp INTO gs_ausp
+                         WITH KEY objek = gs_mch1-cuobj_bm
+                                  atinn = gs_atinn-low
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-boent = gs_ausp-atwrt.
+      ELSE.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEBLDATE'
+          IMPORTING
+            output = gs_atinn-low.
+        READ TABLE gt_ausp INTO gs_ausp
+                           WITH KEY objek = gs_mch1-cuobj_bm
+                                    atinn = gs_atinn-low
+                                    BINARY SEARCH.
+        IF sy-subrc EQ 0.
+          gs_final-boent = gs_ausp-atwrt.
+        ELSE.
+          CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+            EXPORTING
+              input  = 'ZSPIRITBLDATE'
+            IMPORTING
+              output = gs_atinn-low.
+          READ TABLE gt_ausp INTO gs_ausp
+                             WITH KEY objek = gs_mch1-cuobj_bm
+                                      atinn = gs_atinn-low
+                                      BINARY SEARCH.
+          IF sy-subrc EQ 0.
+            gs_final-boent = gs_ausp-atwrt.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    READ TABLE gt_mch1 INTO gs_mch1
+                       WITH KEY matnr = gs_lips-matnr
+                                charg = gs_lips-charg
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+        EXPORTING
+          input  = 'ZBEERBILLOFENTRY'
+        IMPORTING
+          output = gs_atinn-low.
+      READ TABLE gt_ausp INTO gs_ausp
+                         WITH KEY objek = gs_mch1-cuobj_bm
+                                  atinn = gs_atinn-low
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-biloe = gs_ausp-atwrt.
+      ELSE.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZWINEBILLOFENTRY'
+          IMPORTING
+            output = gs_atinn-low.
+        READ TABLE gt_ausp INTO gs_ausp
+                           WITH KEY objek = gs_mch1-cuobj_bm
+                                    atinn = gs_atinn-low
+                                    BINARY SEARCH.
+        IF sy-subrc EQ 0.
+          gs_final-biloe = gs_ausp-atwrt.
+        ELSE.
+          CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+            EXPORTING
+              input  = 'ZSPIRITBILLOFENTRY'
+            IMPORTING
+              output = gs_atinn-low.
+          READ TABLE gt_ausp INTO gs_ausp
+                             WITH KEY objek = gs_mch1-cuobj_bm
+                                      atinn = gs_atinn-low
+                                      BINARY SEARCH.
+          IF sy-subrc EQ 0.
+            gs_final-biloe = gs_ausp-atwrt.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    READ TABLE gt_mch1 INTO gs_mch1
+                       WITH KEY matnr = gs_lips-matnr
+                                charg = gs_lips-charg
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_final-exdat = gs_mch1-vfdat.
+    ENDIF.
+
+    CLEAR: gs_atinn-low.
+    CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+      EXPORTING
+        input  = 'ZWINEVINTAGE'
+      IMPORTING
+        output = gs_atinn-low.
+
+    READ TABLE gt_mch1 INTO gs_mch1
+                       WITH KEY matnr = gs_lips-matnr
+                                charg = gs_lips-charg
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      CLEAR: gs_ausp.
+      READ TABLE gt_ausp INTO gs_ausp
+                         WITH KEY objek = gs_mch1-cuobj_bm
+                                  atinn = gs_atinn-low
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-vinta = gs_ausp-atwrt.
+      ENDIF.
+    ENDIF.
+
+    CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+      EXPORTING
+        input  = 'ZWINEABV'
+      IMPORTING
+        output = gs_atinn-low.
+
+    READ TABLE gt_mch1 INTO gs_mch1
+                       WITH KEY matnr = gs_lips-matnr
+                                charg = gs_lips-charg
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+        EXPORTING
+          input  = 'ZWINEABV'
+        IMPORTING
+          output = gs_atinn-low.
+      READ TABLE gt_ausp INTO gs_ausp
+                         WITH KEY objek = gs_mch1-cuobj_bm
+                                  atinn = gs_atinn-low
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-abv% = gs_ausp-atwrt.
+      ELSE.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERABV'
+          IMPORTING
+            output = gs_atinn-low.
+        READ TABLE gt_ausp INTO gs_ausp
+                           WITH KEY objek = gs_mch1-cuobj_bm
+                                    atinn = gs_atinn-low
+                                    BINARY SEARCH.
+        IF sy-subrc EQ 0.
+          gs_final-abv% = gs_ausp-atwrt.
+        ELSE.
+          CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+            EXPORTING
+              input  = 'ZSPIRITABV'
+            IMPORTING
+              output = gs_atinn-low.
+          READ TABLE gt_ausp INTO gs_ausp
+                             WITH KEY objek = gs_mch1-cuobj_bm
+                                      atinn = gs_atinn-low
+                                      BINARY SEARCH.
+          IF sy-subrc EQ 0.
+            gs_final-abv% = gs_ausp-atwrt.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+      EXPORTING
+        input  = 'ZBEERFORMAT'
+      IMPORTING
+        output = gs_atinn-low.
+    READ TABLE gt_ausp INTO gs_ausp
+                       WITH KEY objek = gs_lips-matnr
+                                atinn = gs_atinn-low
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_final-forma = gs_ausp-atwrt.
+    ELSE.
+      CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+        EXPORTING
+          input  = 'ZWINEFORMAT'
+        IMPORTING
+          output = gs_atinn-low.
+      READ TABLE gt_ausp INTO gs_ausp
+                         WITH KEY objek = gs_lips-matnr
+                                  atinn = gs_atinn-low
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-forma = gs_ausp-atwrt.
+      ELSE.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZSPIRITFORMAT'
+          IMPORTING
+            output = gs_atinn-low.
+        READ TABLE gt_ausp INTO gs_ausp
+                           WITH KEY objek = gs_lips-matnr
+                                    atinn = gs_atinn-low
+                                    BINARY SEARCH.
+        IF sy-subrc EQ 0.
+          gs_final-forma = gs_ausp-atwrt.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    READ TABLE gt_mch1 INTO gs_mch1
+                       WITH KEY matnr = gs_lips-matnr
+                                charg = gs_lips-charg
+                                BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+        EXPORTING
+          input  = 'ZSPIRITORIGIN'
+        IMPORTING
+          output = gs_atinn-low.
+      READ TABLE gt_ausp INTO gs_ausp
+                         WITH KEY objek = gs_mch1-cuobj_bm
+                                  atinn = gs_atinn-low
+                                  BINARY SEARCH.
+      IF sy-subrc EQ 0.
+        gs_final-corgn = gs_ausp-atwrt.
+      ELSE.
+        CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+          EXPORTING
+            input  = 'ZBEERORIGIN'
+          IMPORTING
+            output = gs_atinn-low.
+        READ TABLE gt_ausp INTO gs_ausp
+                           WITH KEY objek = gs_lips-matnr
+                                    atinn = gs_atinn-low
+                                    BINARY SEARCH.
+        IF sy-subrc EQ 0.
+          gs_final-corgn = gs_ausp-atwrt.
+        ELSE.
+          CALL FUNCTION 'CONVERSION_EXIT_ATINN_INPUT'
+            EXPORTING
+              input  = 'ZWINEORIGIN'
+            IMPORTING
+              output = gs_atinn-low.
+          READ TABLE gt_ausp INTO gs_ausp
+                             WITH KEY objek = gs_lips-matnr
+                                      atinn = gs_atinn-low
+                                      BINARY SEARCH.
+          IF sy-subrc EQ 0.
+            gs_final-corgn = gs_ausp-atwrt.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    CALL FUNCTION 'CONVERSION_EXIT_MATN1_OUTPUT'
+      EXPORTING
+        input  = gs_final-matnr
+      IMPORTING
+        output = gs_final-matnr.
+
+    CALL FUNCTION 'CONVERSION_EXIT_MATN1_OUTPUT'
+      EXPORTING
+        input  = gs_final-bismt
+      IMPORTING
+        output = gs_final-bismt.
+
+    TRY.
+
+      data(ls_scdl_refdoc) = lt_scdl_refdoc[ refdocno = gs_lips-vbeln ].
+
+      data(lv_ewm_bin) = lt_ordim_l[ rdocid = ls_scdl_refdoc-docid
+                                     charg  = gs_lips-charg ]-vlpla.
+
+      gs_final-ewm_bin = lv_ewm_bin.
+
+    CATCH cx_sy_itab_line_not_found.
+
+    ENDTRY.
+
+    APPEND gs_final TO gt_final.
+
+    CLEAR: gs_final, gs_lips, gs_likp, gs_makt, gs_mara, gs_marc, gs_mch1,
+           gs_ausp, gs_vbak, gs_vbap, gs_prcd.
+
+          clear :  lv_ewm_bin,
+               ls_scdl_refdoc.
+
+  ENDLOOP.
+
+  IF gt_final[] IS NOT INITIAL.
+
+    REFRESH: gt_fcat.
+
+    PERFORM fcat USING 'VBELN' 'Delivery' gv_count.
+    PERFORM fcat USING 'POSNR' 'Item' gv_count.
+    PERFORM fcat USING 'KUNAG' 'Customer No' gv_count.
+    PERFORM fcat USING 'CNAME' 'Customer Name' gv_count.
+    PERFORM fcat USING 'KUNNR' 'Ship to Party No' gv_count.
+    PERFORM fcat USING 'PNAME' 'Ship to Party Name' gv_count.
+    PERFORM fcat USING 'VHNUM' 'Vehicle Number' gv_count.
+    PERFORM fcat USING 'DNAME' 'Driver Name' gv_count.
+    PERFORM fcat USING 'CSEAL' 'Customs Seal Number' gv_count.
+    PERFORM fcat USING 'CONUM' 'Container Number' gv_count.
+    PERFORM fcat USING 'BISMT' 'Old Material Number' gv_count.
+    PERFORM fcat USING 'MATNR' 'TMT Item Code' gv_count.
+    PERFORM fcat USING 'MAKTX' 'TMT Item Description' gv_count.
+    "Begin of changes S4DK903328 adding material group desc.
+    PERFORM fcat USING 'WGBEZ' 'Material Group Description' gv_count.
+    PERFORM fcat USING 'CHARG' 'Batch Number' gv_count.
+    PERFORM fcat USING 'VOLUM' 'Unit Volume(CL)' gv_count.
+    PERFORM fcat USING 'UMVKZ' 'Unit per Case' gv_count.
+    PERFORM fcat USING 'STEUC' 'H.S. Code' gv_count.
+    PERFORM fcat USING 'TEXT1' 'HS Code Description' gv_count.
+    PERFORM fcat USING 'LFIMG' 'Quantity (Case)' gv_count.
+    PERFORM fcat USING 'VOCBM' 'CBM' gv_count.
+    PERFORM fcat USING 'VOLIT' 'Total Volume(Litre)' gv_count.
+    PERFORM fcat USING 'BRGEW' 'Total Weight(KG)' gv_count.
+    PERFORM fcat USING 'PACKI' 'Packing' gv_count.
+    PERFORM fcat USING 'EXDAT' 'Expiry Date' gv_count.
+    PERFORM fcat USING 'VINTA' 'Vintage' gv_count.
+    PERFORM fcat USING 'DLQTY' 'Delivery Quantity' gv_count.
+    PERFORM fcat USING 'MEINS' 'UOM' gv_count.
+    PERFORM fcat USING 'PIKMG' 'Picking Quantity' gv_count.
+    PERFORM fcat USING 'PIKME' 'UOM2' gv_count.
+    PERFORM fcat USING 'LGORT' 'Bin No./Warehouse No.' gv_count.
+    PERFORM fcat USING 'LGOBE' 'Stor. Loc. Description' gv_count.
+    PERFORM fcat USING 'BOENT' 'Bill of Entry Date' gv_count.
+    PERFORM fcat USING 'BILOE' 'Bill of Entry' gv_count.
+    PERFORM fcat USING 'KWERT' 'Unit Price' gv_count.
+    PERFORM fcat USING 'NETWR' 'Total Amount' gv_count.
+    PERFORM fcat USING 'WAERK' 'Currency' gv_count.
+    PERFORM fcat USING 'ABV%' 'ABV%' gv_count.
+    PERFORM fcat USING 'FORMA' 'Format' gv_count.
+    PERFORM fcat USING 'CORGN' 'Country of Origin' gv_count.
+    PERFORM fcat USING 'EWM_BIN' 'EWM Bin' gv_count.
+
+    gs_layo-cwidth_opt = 'X'.
+    gs_vari-report     = sy-repid.
+    gs_vari-variant    = p_vari.
+
+    CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY_LVC'
+      EXPORTING
+        i_callback_program = sy-repid
+        is_layout_lvc      = gs_layo
+        it_fieldcat_lvc    = gt_fcat
+        i_save             = 'A'
+        is_variant         = gs_vari
+      TABLES
+        t_outtab           = gt_final
+      EXCEPTIONS
+        program_error      = 1
+        OTHERS             = 2.
+
+  ENDIF.
+*&---------------------------------------------------------------------*
+*& Form FCAT
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*      -->P_       text
+*      -->P_       text
+*      -->P_GV_COUNT  text
+*&---------------------------------------------------------------------*
+FORM fcat USING VALUE(p_0250)
+                VALUE(p_0251)
+                p_gv_count.
+  gs_fcat-fieldname = p_0250.
+  gs_fcat-scrtext_l = p_0251.
+  gs_fcat-col_pos   = p_gv_count.
+  IF gs_fcat-fieldname EQ 'PIKMG'.
+    gs_fcat-just = 'R'.
+  ENDIF.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR: gs_fcat.
+  gv_count = gv_count + 1.
+ENDFORM.
